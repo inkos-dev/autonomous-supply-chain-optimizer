@@ -2,9 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 from crewai import Agent, Task, Crew, Process
-from langchain_google_genai import ChatGoogleGenerativeAI
 
-# --- 1. PAGE SETUP & STYLE ---
 st.set_page_config(page_title="INKOS | Supply Chain AI", page_icon="🏭", layout="wide")
 
 st.markdown("""
@@ -32,7 +30,6 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. SECRETS & AUTH ---
 if "GEMINI_API_KEY" not in os.environ and "GEMINI_API_KEY" not in st.secrets:
     st.error("⚠️ GEMINI_API_KEY not found. Please add it to the 'Advanced' secrets tab in Streamlit Cloud.")
     st.stop()
@@ -40,7 +37,6 @@ if "GEMINI_API_KEY" not in os.environ and "GEMINI_API_KEY" not in st.secrets:
 if "GEMINI_API_KEY" not in os.environ:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 
-# --- 3. HEADER SECTION ---
 col_title, col_stats = st.columns([4, 2])
 with col_title:
     st.title("🏭 Multi-Agent Supply Chain Optimizer")
@@ -53,7 +49,6 @@ with col_stats:
 
 st.divider()
 
-# --- 4. DATA INGESTION ---
 if 'df_bom' not in st.session_state: st.session_state.df_bom = None
 if 'df_inventory' not in st.session_state: st.session_state.df_inventory = None
 if 'df_suppliers' not in st.session_state: st.session_state.df_suppliers = None
@@ -90,7 +85,6 @@ else:
         st.sidebar.error(f"Error loading demo files: {e}. Ensure bom.csv, inventory.csv, and suppliers.csv exist.")
         st.session_state.df_bom = None
 
-# --- 5. DATA DISPLAY & EXECUTION ---
 if st.session_state.df_bom is not None:
     
     df_bom = st.session_state.df_bom
@@ -115,9 +109,6 @@ if st.session_state.df_bom is not None:
         
         with st.status("🤖 Orchestrating AI Agent Team...", expanded=True) as status:
             
-            # Use Langchain wrapper to explicitly route to 1.5-flash and avoid the 404 SDK error
-            llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.2)
-            
             bom_md = df_bom.to_markdown(index=False)
             inv_md = df_inventory.to_markdown(index=False)
             sup_md = df_suppliers.to_markdown(index=False)
@@ -127,7 +118,7 @@ if st.session_state.df_bom is not None:
                 role="Supply Chain Risk Analyst",
                 goal="Identify immediate inventory shortages and production risks.",
                 backstory="You are a veteran supply chain analyst at a heavy-duty pump manufacturing plant. You excel at finding critical bottlenecks.",
-                llm=llm
+                llm="gemini/gemini-2.0-flash"
             )
 
             st.write("🤝 procurement_specialist.join_session()")
@@ -135,7 +126,7 @@ if st.session_state.df_bom is not None:
                 role="Procurement Specialist",
                 goal="Find the most cost-effective and timely supplier for critically low parts.",
                 backstory="You are a shrewd negotiator. You scan the supplier network to find the best balance of speed and cost.",
-                llm=llm
+                llm="gemini/gemini-2.0-flash"
             )
 
             st.write("👔 operations_director.join_session()")
@@ -143,7 +134,7 @@ if st.session_state.df_bom is not None:
                 role="Operations Director",
                 goal="Review supply chain crises and make final executive decisions.",
                 backstory="You prioritize keeping the assembly line moving and maximizing ROI.",
-                llm=llm
+                llm="gemini/gemini-2.0-flash"
             )
 
             task_1 = Task(
@@ -167,14 +158,14 @@ if st.session_state.df_bom is not None:
             factory_crew = Crew(
                 agents=[risk_analyst, procurement_specialist, operations_director],
                 tasks=[task_1, task_2, task_3],
-                process=Process.sequential
+                process=Process.sequential,
+                max_rpm=10  
             )
 
             st.write("🚀 Running Multi-Agent Reasoning Pipeline...")
             final_result = factory_crew.kickoff()
             status.update(label="✅ Crisis Resolution Complete", state="complete", expanded=False)
 
-        # --- 6. AGENT REPORT CARDS ---
         st.markdown("## 📑 Resolution Strategy Logs")
         
         c1, c2 = st.columns(2)
