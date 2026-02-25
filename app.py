@@ -4,7 +4,6 @@ import os
 import uuid
 import time
 from crewai import Agent, Task, Crew, Process
-from langchain_google_genai import ChatGoogleGenerativeAI
 
 # --- 1. PAGE SETUP & STYLE ---
 st.set_page_config(page_title="INKOS | Supply Chain AI", page_icon="🏭", layout="wide")
@@ -56,7 +55,6 @@ with col_stats:
 st.divider()
 
 # --- 4. DATA INGESTION (Sidebar & Session State) ---
-# Initialize session state for our dataframes
 if 'df_bom' not in st.session_state: st.session_state.df_bom = None
 if 'df_inventory' not in st.session_state: st.session_state.df_inventory = None
 if 'df_suppliers' not in st.session_state: st.session_state.df_suppliers = None
@@ -84,7 +82,6 @@ if data_mode == "Upload Custom CSVs":
         st.session_state.df_inventory = None
         st.session_state.df_suppliers = None
 else:
-    # Load Demo Data
     try:
         st.session_state.df_bom = pd.read_csv("bom.csv")
         st.session_state.df_inventory = pd.read_csv("inventory.csv")
@@ -97,7 +94,6 @@ else:
 # Ensure we have data before rendering the rest of the app
 if st.session_state.df_bom is not None:
     
-    # Map session state back to local variables for cleaner code below
     df_bom = st.session_state.df_bom
     df_inventory = st.session_state.df_inventory
     df_suppliers = st.session_state.df_suppliers
@@ -122,19 +118,20 @@ if st.session_state.df_bom is not None:
         
         with st.status("🤖 Orchestrating AI Agent Team...", expanded=True) as status:
             
-            llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.2)
-            
             # Prepare data in Markdown for LLM consumption
             bom_md = df_bom.to_markdown(index=False)
             inv_md = df_inventory.to_markdown(index=False)
             sup_md = df_suppliers.to_markdown(index=False)
 
+            # NOTE: If gemini-2.5-flash throws a 403/400 error again, 
+            # change the strings below to "gemini/gemini-1.5-flash"
+            
             st.write("🕵️‍♂️ risk_analyst.join_session()")
             risk_analyst = Agent(
                 role="Supply Chain Risk Analyst",
                 goal="Identify immediate inventory shortages and production risks.",
                 backstory="You are a veteran supply chain analyst at a heavy-duty pump manufacturing plant. You excel at finding critical bottlenecks.",
-                llm=llm
+                llm="gemini/gemini-2.5-flash"
             )
 
             st.write("🤝 procurement_specialist.join_session()")
@@ -142,7 +139,7 @@ if st.session_state.df_bom is not None:
                 role="Procurement Specialist",
                 goal="Find the most cost-effective and timely supplier for critically low parts.",
                 backstory="You are a shrewd negotiator. You scan the supplier network to find the best balance of speed and cost.",
-                llm=llm
+                llm="gemini/gemini-2.5-flash"
             )
 
             st.write("👔 operations_director.join_session()")
@@ -150,7 +147,7 @@ if st.session_state.df_bom is not None:
                 role="Operations Director",
                 goal="Review supply chain crises and make final executive decisions.",
                 backstory="You prioritize keeping the assembly line moving and maximizing ROI.",
-                llm=llm
+                llm="gemini/gemini-2.5-flash"
             )
 
             # Task definitions
@@ -186,7 +183,6 @@ if st.session_state.df_bom is not None:
         # --- 7. AGENT REPORT CARDS ---
         st.markdown("## 📑 Resolution Strategy Logs")
         
-        # Using columns for the first two agents
         c1, c2 = st.columns(2)
         with c1:
             st.markdown(f"""<div class="agent-card">
@@ -200,7 +196,6 @@ if st.session_state.df_bom is not None:
                 {task_2.output.raw}
             </div>""", unsafe_allow_html=True)
         
-        # Final Director Summary spans the full width
         st.markdown(f"""<div class="agent-card">
             <h3 style="color: #00ffa2; margin-top:0;">👔 Operations Director Summary</h3>
             {task_3.output.raw}
