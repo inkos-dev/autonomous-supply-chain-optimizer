@@ -1,5 +1,6 @@
+protobuf==5.29.3
+streamlit>=1.35.0
 crewai
 langchain-google-genai
 pandas
-streamlit
 tabulate
