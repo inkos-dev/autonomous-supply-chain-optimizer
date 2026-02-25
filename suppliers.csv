@@ -1,0 +1,5 @@
+part_name,supplier_name,cost_per_unit_usd,lead_time_days,reliability_score
+Ceramic Bearings,GlobalTech Parts (China),15.0,21,0.85
+Ceramic Bearings,Bavarian Precision (Germany),55.0,2,0.99
+Ceramic Bearings,AeroSpace Supply (USA),40.0,6,0.95
+Titanium Impeller,Titanium Co (Japan),300.0,14,0.9
