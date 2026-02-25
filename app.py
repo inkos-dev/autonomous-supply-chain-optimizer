@@ -118,7 +118,7 @@ if st.session_state.df_bom is not None:
                 role="Supply Chain Risk Analyst",
                 goal="Identify immediate inventory shortages and production risks.",
                 backstory="You are a veteran supply chain analyst at a heavy-duty pump manufacturing plant. You excel at finding critical bottlenecks.",
-                llm="gemini/gemini-1.5-flash"
+                llm="gemini/gemini-1.5-flash-002"
             )
 
             st.write("🤝 procurement_specialist.join_session()")
@@ -126,7 +126,7 @@ if st.session_state.df_bom is not None:
                 role="Procurement Specialist",
                 goal="Find the most cost-effective and timely supplier for critically low parts.",
                 backstory="You are a shrewd negotiator. You scan the supplier network to find the best balance of speed and cost.",
-                llm="gemini/gemini-1.5-flash"
+                llm="gemini/gemini-1.5-flash-002"
             )
 
             st.write("👔 operations_director.join_session()")
@@ -134,7 +134,7 @@ if st.session_state.df_bom is not None:
                 role="Operations Director",
                 goal="Review supply chain crises and make final executive decisions.",
                 backstory="You prioritize keeping the assembly line moving and maximizing ROI.",
-                llm="gemini/gemini-1.5-flash"
+                llm="gemini/gemini-1.5-flash-002"
             )
 
             task_1 = Task(
