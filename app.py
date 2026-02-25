@@ -31,21 +31,21 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 if "GEMINI_API_KEY" not in os.environ and "GEMINI_API_KEY" not in st.secrets:
-    st.error("⚠️ GEMINI_API_KEY not found. Please add it to the 'Advanced' secrets tab in Streamlit Cloud.")
+    st.error("⚠️ API Key not found.")
     st.stop()
 
-api_key = os.environ.get("GEMINI_API_KEY") or st.secrets.get("GEMINI_API_KEY")
-os.environ["GOOGLE_API_KEY"] = api_key
-os.environ["GEMINI_API_KEY"] = api_key
+key = os.environ.get("GEMINI_API_KEY") or st.secrets.get("GEMINI_API_KEY")
+os.environ["GOOGLE_API_KEY"] = key
+os.environ["GEMINI_API_KEY"] = key
 
 col_title, col_stats = st.columns([4, 2])
 with col_title:
     st.title("🏭 Multi-Agent Supply Chain Optimizer")
-    st.write("Autonomous AI workforce for real-time disruption resolution and procurement strategy.")
+    st.write("Autonomous AI workforce for real-time factory disruption resolution.")
 
 with col_stats:
     m1, m2 = st.columns(2)
-    m1.metric("Engine", "CrewAI + Gemini")
+    m1.metric("Engine", "Gemini 2.5 Flash")
     m2.metric("Status", "Agentic Flow")
 
 st.divider()
@@ -58,32 +58,23 @@ st.sidebar.header("Data Ingestion")
 data_mode = st.sidebar.radio("Select Data Source:", ["Use Demo Data", "Upload Custom CSVs"])
 
 if data_mode == "Upload Custom CSVs":
-    st.sidebar.markdown("### Upload your files:")
-    bom_file = st.sidebar.file_uploader("1. Upload BOM", type=["csv"])
-    inv_file = st.sidebar.file_uploader("2. Upload Inventory", type=["csv"])
-    sup_file = st.sidebar.file_uploader("3. Upload Suppliers", type=["csv"])
+    bom_file = st.sidebar.file_uploader("1. BOM", type=["csv"])
+    inv_file = st.sidebar.file_uploader("2. Inventory", type=["csv"])
+    sup_file = st.sidebar.file_uploader("3. Suppliers", type=["csv"])
 
     if bom_file and inv_file and sup_file:
         try:
             st.session_state.df_bom = pd.read_csv(bom_file)
             st.session_state.df_inventory = pd.read_csv(inv_file)
             st.session_state.df_suppliers = pd.read_csv(sup_file)
-            st.sidebar.success("All custom data loaded successfully!")
         except Exception as e:
-            st.sidebar.error(f"Error reading custom files: {e}")
-    else:
-        st.sidebar.warning("Please upload all 3 CSV files to proceed.")
-        st.session_state.df_bom = None
-        st.session_state.df_inventory = None
-        st.session_state.df_suppliers = None
+            st.sidebar.error(f"Error: {e}")
 else:
     try:
         st.session_state.df_bom = pd.read_csv("bom.csv")
         st.session_state.df_inventory = pd.read_csv("inventory.csv")
         st.session_state.df_suppliers = pd.read_csv("suppliers.csv")
-        st.sidebar.success("Demo data loaded!")
-    except Exception as e:
-        st.sidebar.error(f"Error loading demo files.")
+    except Exception:
         st.session_state.df_bom = None
 
 if st.session_state.df_bom is not None:
@@ -91,73 +82,67 @@ if st.session_state.df_bom is not None:
     df_inventory = st.session_state.df_inventory
     df_suppliers = st.session_state.df_suppliers
 
-    st.subheader("📊 Real-Time Factory Data")
     col1, col2, col3 = st.columns(3)
     with col1:
-        with st.expander("📝 Bill of Materials (BOM)", expanded=True):
-            st.dataframe(df_bom, hide_index=True, use_container_width=True)
+        with st.expander("📝 BOM", expanded=True):
+            st.dataframe(df_bom, hide_index=True, width='stretch')
     with col2:
-        with st.expander("📦 Warehouse Inventory", expanded=True):
-            st.dataframe(df_inventory, hide_index=True, use_container_width=True)
+        with st.expander("📦 Inventory", expanded=True):
+            st.dataframe(df_inventory, hide_index=True, width='stretch')
     with col3:
-        with st.expander("🌍 Supplier Network", expanded=True):
-            st.dataframe(df_suppliers, hide_index=True, use_container_width=True)
+        with st.expander("🌍 Suppliers", expanded=True):
+            st.dataframe(df_suppliers, hide_index=True, width='stretch')
 
     st.divider()
 
     if st.button("🚨 INITIALIZE AI TRIAGE PROTOCOL"):
-        with st.status("🤖 Orchestrating AI Agent Team...", expanded=True) as status:
+        with st.status("🤖 Orchestrating Agents...", expanded=True) as status:
             bom_md = df_bom.to_markdown(index=False)
             inv_md = df_inventory.to_markdown(index=False)
             sup_md = df_suppliers.to_markdown(index=False)
 
-            target_model = "gemini/gemini-1.5-flash"
+            # Using the exact 2.5 Flash ID used in your other tools
+            model_id = "gemini/gemini-2.5-flash"
 
-            st.write("🕵️‍♂️ risk_analyst.join_session()")
             risk_analyst = Agent(
-                role="Supply Chain Risk Analyst",
-                goal="Identify immediate inventory shortages and production risks.",
-                backstory="You are a veteran supply chain analyst. You excel at finding critical bottlenecks.",
-                llm=target_model,
-                allow_delegation=False,
-                verbose=True
+                role="Risk Analyst",
+                goal="Identify part shortages and build capacity.",
+                backstory="Veteran analyst. Expert at finding critical bottlenecks.",
+                llm=model_id,
+                allow_delegation=False
             )
 
-            st.write("🤝 procurement_specialist.join_session()")
             procurement_specialist = Agent(
                 role="Procurement Specialist",
-                goal="Find the most cost-effective and timely supplier for critically low parts.",
-                backstory="You are a shrewd negotiator. You scan the supplier network to find the best balance of speed and cost.",
-                llm=target_model,
-                allow_delegation=False,
-                verbose=True
+                goal="Find the best vendor to resolve shortages.",
+                backstory="Shrewd negotiator focusing on speed and cost.",
+                llm=model_id,
+                allow_delegation=False
             )
 
-            st.write("👔 operations_director.join_session()")
             operations_director = Agent(
                 role="Operations Director",
-                goal="Review supply chain crises and make final executive decisions.",
-                backstory="You prioritize keeping the assembly line moving and maximizing ROI.",
-                llm=target_model,
-                allow_delegation=False,
-                verbose=True
+                goal="Make final executive decisions on the crisis.",
+                backstory="Prioritizes assembly line uptime and ROI.",
+                llm=model_id,
+                allow_delegation=False
             )
 
             task_1 = Task(
-                description=f"Analyze BOM:\n{bom_md}\nand Inventory:\n{inv_md}\nIdentify shortages.",
-                expected_output="A report identifying specific part shortages.",
+                description=f"Analyze BOM and Inventory:\n{bom_md}\n{inv_md}\nIdentify build capacity.",
+                expected_output="Shortage report.",
                 agent=risk_analyst
             )
 
             task_2 = Task(
-                description=f"Based on the Analyst's report, look at the Supplier Database:\n{sup_md}\nRecommend the best vendor.",
-                expected_output="A comparison of available suppliers.",
+                description=f"Review Suppliers:\n{sup_md}\nSelect best vendor for shortages.",
+                expected_output="Vendor recommendation.",
                 agent=procurement_specialist
             )
 
             task_3 = Task(
-                description="Summarize findings for the CEO.",
-                expected_output="A concise 3-bullet-point executive summary.",
+                description="Summarize for CEO.",
+                expected_output="3-bullet executive summary.",
                 agent=operations_director
             )
 
@@ -165,29 +150,19 @@ if st.session_state.df_bom is not None:
                 agents=[risk_analyst, procurement_specialist, operations_director],
                 tasks=[task_1, task_2, task_3],
                 process=Process.sequential,
-                max_rpm=2
+                max_rpm=2  # CRITICAL: Keeps agents from hitting the rate limit immediately
             )
 
-            st.write("🚀 Running Multi-Agent Reasoning Pipeline...")
             final_result = factory_crew.kickoff()
-            status.update(label="✅ Crisis Resolution Complete", state="complete", expanded=False)
+            status.update(label="✅ Strategy Compiled", state="complete", expanded=False)
 
         st.markdown("## 📑 Resolution Strategy Logs")
         c1, c2 = st.columns(2)
         with c1:
-            st.markdown(f"""<div class="agent-card">
-                <h3 style="color: #00ffa2; margin-top:0;">🕵️‍♂️ Risk Analyst</h3>
-                {task_1.output.raw}
-            </div>""", unsafe_allow_html=True)
+            st.markdown(f'<div class="agent-card"><h3>🕵️‍♂️ Risk Analyst</h3>{task_1.output.raw}</div>', unsafe_allow_html=True)
         with c2:
-            st.markdown(f"""<div class="agent-card">
-                <h3 style="color: #00ffa2; margin-top:0;">🤝 Procurement Spec</h3>
-                {task_2.output.raw}
-            </div>""", unsafe_allow_html=True)
-        st.markdown(f"""<div class="agent-card">
-            <h3 style="color: #00ffa2; margin-top:0;">👔 Operations Director Summary</h3>
-            {task_3.output.raw}
-        </div>""", unsafe_allow_html=True)
+            st.markdown(f'<div class="agent-card"><h3>🤝 Procurement</h3>{task_2.output.raw}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="agent-card"><h3>👔 Executive Summary</h3>{task_3.output.raw}</div>', unsafe_allow_html=True)
         st.balloons()
 else:
     st.info("👈 Please select a data source from the sidebar to begin.")
