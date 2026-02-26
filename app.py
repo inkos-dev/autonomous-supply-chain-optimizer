@@ -11,7 +11,6 @@ st.markdown("""
     .stApp { background-color: #0e1117; } 
     div[data-testid="stMetric"] { background-color: #1f2937; border: 1px solid #374151; padding: 15px; border-radius: 10px; }
     
-    /* Pulse Animation for Metrics */
     @keyframes pulse {
         0% { box-shadow: 0 0 0 0 rgba(0, 255, 162, 0.4); }
         70% { box-shadow: 0 0 0 10px rgba(0, 255, 162, 0); }
@@ -46,6 +45,31 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+def ensure_demo_data():
+    if not os.path.exists("bom.csv"):
+        pd.DataFrame({
+            "final_product": ["Centrifugal Pump"] * 4,
+            "part_name": ["Titanium Impeller", "Heavy-Duty Motor", "Steel Shaft", "Ceramic Bearings"],
+            "quantity_required_per_unit": [1, 1, 1, 4]
+        }).to_csv("bom.csv", index=False)
+    
+    if not os.path.exists("inventory.csv"):
+        pd.DataFrame({
+            "part_name": ["Titanium Impeller", "Heavy-Duty Motor", "Steel Shaft", "Ceramic Bearings"],
+            "current_stock": [50, 120, 200, 10],
+            "reorder_threshold": [20, 50, 50, 100]
+        }).to_csv("inventory.csv", index=False)
+        
+    if not os.path.exists("suppliers.csv"):
+        pd.DataFrame({
+            "part_name": ["Ceramic Bearings", "Ceramic Bearings", "Heavy-Duty Motor"],
+            "supplier_name": ["GlobalTech Parts", "Precision Components", "VoltDrive Systems"],
+            "unit_cost_usd": [15, 25, 450],
+            "lead_time_days": [14, 3, 7]
+        }).to_csv("suppliers.csv", index=False)
+
+ensure_demo_data()
+
 if "GEMINI_API_KEY" not in os.environ and "GEMINI_API_KEY" not in st.secrets:
     st.error("⚠️ API Key not found.")
     st.stop()
@@ -63,9 +87,9 @@ with st.sidebar:
     
     if st.session_state.df_bom is not None:
         st.success("SIMULATION READY")
-        st.info(f"Loaded: {len(st.session_state.df_bom)} Bill of Material Items")
+        st.info(f"Context: {len(st.session_state.df_bom)} Industrial Parts")
     else:
-        st.warning("SYSTEM OFFLINE: Load Data")
+        st.warning("SYSTEM OFFLINE")
         
     st.divider()
     data_mode = st.radio("Select Environment Source:", ["Use Demo Data", "Upload Custom CSVs"])
@@ -82,13 +106,10 @@ with st.sidebar:
             st.rerun()
     else:
         if st.button("Initialize Synthetic Environment"):
-            try:
-                st.session_state.df_bom = pd.read_csv("bom.csv")
-                st.session_state.df_inventory = pd.read_csv("inventory.csv")
-                st.session_state.df_suppliers = pd.read_csv("suppliers.csv")
-                st.rerun()
-            except:
-                st.error("Missing demo CSV files in root directory.")
+            st.session_state.df_bom = pd.read_csv("bom.csv")
+            st.session_state.df_inventory = pd.read_csv("inventory.csv")
+            st.session_state.df_suppliers = pd.read_csv("suppliers.csv")
+            st.rerun()
 
 col_title, col_stats = st.columns([4, 2])
 with col_title:
