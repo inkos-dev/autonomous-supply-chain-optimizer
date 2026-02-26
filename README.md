@@ -1,5 +1,10 @@
 # 🏭 Multi-Agent Supply Chain Optimizer
 
+## 🚀 Live Demo
+**[Click here to run the live AI Agents on Streamlit Cloud](https://autonomous-supply-chain-optimizer-6jbyely3xsdrb5tdriadaz.streamlit.app/)**
+
+---
+
 ## 🚀 Overview
 An **Agentic AI** solution designed to bridge the gap between Industrial Engineering (**Atoms**) and AI Engineering (**Bits**). This system uses a **multi-agent orchestration framework** to simulate how a digital workforce resolves complex industrial disruptions autonomously.
 
@@ -19,8 +24,8 @@ The system orchestrates a sequential "Triage Protocol" between three specialized
 ---
 
 ## ⚡ Key Features
-* **📂 Dynamic Data Ingestion:** Supports user-uploaded CSVs for BOM, Inventory, and Supplier data, allowing for real-world custom testing beyond static mockups.
-* **🛡️ Production Resilience:** Features custom `max_rpm` throttling and environment-agnostic API key handling to ensure stability under Free Tier constraints.
+* **📂 Dynamic Data Ingestion:** Supports user-uploaded CSVs for BOM, Inventory, and Supplier data, allowing for real-world custom testing beyond demo data.
+* **🛡️ Production Resilience:** Features custom `max_rpm` throttling and environment-agnostic API key handling to ensure stability under free-tier constraints.
 * **📊 Deterministic Output:** Combines structured data parsing with LLM reasoning to ensure agent findings are grounded directly in the provided industrial datasets.
 
 ---
